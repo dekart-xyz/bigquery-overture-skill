@@ -4,12 +4,9 @@ Build and optionally execute cost-safe Overture Maps SQL in BigQuery using `bq`,
 
 ## What this skill does
 
-- Supports `sql_only` (default) and `execute` modes
-- Enforces dry run before execution
-- Enforces `maximum_bytes_billed`
-- Blocks over-budget execution unless explicitly overridden
-- Returns a consistent JSON output contract for downstream use
-- Works in Codex CLI, Claude CLI, and Codex App shell contexts
+- Turns plain-language Overture questions into cost-safe BigQuery queries.
+- Checks bytes first (dry run) and blocks over-budget execution by default.
+- Gives you either verified SQL or final numeric results, depending on what you ask.
 
 ## Prerequisites
 
@@ -45,7 +42,17 @@ bq ls
 
 Ensure your identity/service account has required IAM roles to run queries on target datasets.
 
-## Optional environment variables
+## Quick start (Codex or Claude)
+
+1. Open terminal in `/Users/vladi/dev/bigquery-overture-skill`.
+2. Start Codex CLI or Claude CLI in this directory.
+3. Ask your question. Done.
+
+Example questions:
+- `Calculate Berlin area from Overture division_area and return the number.`
+- `Give me Berlin boundaries from Overture and a small preview of geometry rows.`
+
+## .env setup (optional)
 
 You can define these in shell env or in a local `.env` file:
 
@@ -56,6 +63,16 @@ You can define these in shell env or in a local `.env` file:
 - `BIGQUERY_CREDENTIALS_BASE64`
 
 If `.env` is present, the script auto-loads it.
+
+Example `.env`:
+
+```bash
+cat > .env <<'EOF'
+BQ_PROJECT_ID=your-project-id
+BQ_LOCATION=US
+BQ_MAX_BYTES_BILLED=10737418240
+EOF
+```
 
 ### Cost of default `BQ_MAX_BYTES_BILLED`
 
@@ -73,7 +90,7 @@ Formula:
 
 Note: BigQuery includes monthly free query usage (first 1 TiB), so effective billed cost can be lower or zero depending on project usage.
 
-## Use with Codex CLI (step by step)
+## Advanced guides
 
 Default Codex home is `~/.codex` when `CODEX_HOME` is not set.
 
@@ -116,20 +133,8 @@ You should see at least:
 - `scripts/run_cost_checked_query.sh`
 
 3. Open your project/work directory where you want to run queries.
-
-4. (Optional) Create a local `.env` with BigQuery settings:
-
-```bash
-cat > .env <<'EOF'
-BQ_PROJECT_ID=your-project-id
-BQ_LOCATION=US
-BQ_MAX_BYTES_BILLED=10737418240
-EOF
-```
-
-5. Start Codex CLI in that directory.
-
-6. Invoke the skill explicitly in your prompt using `$bigquery-overture-skill`.
+4. Start Codex CLI in that directory.
+5. Invoke the skill explicitly in your prompt using `$bigquery-overture-skill`.
 
 Example prompts:
 - `Use $bigquery-overture-skill to prepare a Berlin rail query with strict bbox prefilter and verify cost first.`
