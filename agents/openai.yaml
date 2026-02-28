@@ -1,0 +1,4 @@
+interface:
+  display_name: "BigQuery Overture Skill"
+  short_description: "Cost-safe Overture SQL via bq dry-run guardrails"
+  default_prompt: "Use $bigquery-overture-skill to build bounded Overture BigQuery SQL with dry-run budget checks and optional execution."
