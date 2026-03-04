@@ -62,6 +62,44 @@ Apply all guardrails every time:
 - Row cap (`LIMIT`) for previews
 4. Separate heavy geometry retrieval from numeric aggregation when practical.
 
+## H3 Aggregation Support
+
+Use H3 when requested by the user, or when spatial aggregation/binning is needed (heatmaps, density summaries, cell-based rollups).
+
+### H3 function namespace by location
+
+- Use `jslibs.h3.*` (US convenience namespace) for US/default location queries.
+- Use `jslibs.eu_h3.*` for EU location queries.
+- `jslibs.us_h3.*` is equivalent to US behavior when explicit namespace is preferred.
+
+### H3 usage patterns
+
+1. Point/cell index:
+
+```sql
+jslibs.h3.ST_H3(<geography_point>, <resolution>)
+```
+
+2. Polygon fill to cells:
+
+```sql
+jslibs.h3.ST_H3_POLYFILLFROMGEOG(<geography_polygon>, <resolution>)
+```
+
+3. Cell boundary for visualization:
+
+```sql
+jslibs.h3.ST_H3_BOUNDARY(<h3_index>)
+```
+
+### H3 safety/cost rules
+
+1. Apply selective `WHERE` + hardcoded bbox first, then compute H3.
+2. For aggregation queries, return `h3` + aggregate metrics before adding boundaries.
+3. Use `COUNT(*)` previews before geometry-heavy `ST_H3_BOUNDARY` output.
+4. Keep resolution reasonable by default (`7`-`9` city scale) unless user requests otherwise.
+5. If over budget, lower resolution or narrow bbox/date filters before retrying.
+
 ## Schema Discovery Patterns
 
 List Overture tables:

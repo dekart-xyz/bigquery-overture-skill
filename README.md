@@ -7,6 +7,7 @@ Build and optionally execute cost-safe Overture Maps SQL in BigQuery using `bq`,
 - Turns plain-language Overture questions into cost-safe BigQuery queries.
 - Checks bytes first (dry run) and blocks over-budget execution by default.
 - Gives you either verified SQL or final numeric results, depending on what you ask.
+- Uses H3 grid aggregation when requested (or when spatial binning is needed for aggregation).
 
 ## Prerequisites
 
