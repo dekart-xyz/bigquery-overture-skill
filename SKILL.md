@@ -127,9 +127,9 @@ ORDER BY ordinal_position;
 
 Rules:
 - Always start with selective `WHERE` filters.
-- Always include a hard-coded bbox prefilter on `bbox.xmin/xmax/ymin/ymax` for large feature tables (for example, `segment`, `building`, `place`).
-- Do not rely on dynamic boundary filters alone (for example, `ST_INTERSECTS(s.geometry, city.geometry)` from a CTE/subquery) as the primary filter, because this can trigger broad scans.
-- Treat dynamic boundary geometry as a secondary exact clip only, after the hard-coded bbox gate.
+- Always include a hard-coded bbox prefilter on `bbox.xmin/xmax/ymin/ymax` for large feature tables (for example, `segment`, `building`, `place`). This prevents full table scans by enabling partition pruning.
+- **bbox does not replace real boundaries.** When the user asks about a named area (city, district, country), always resolve its actual geometry from `division_area` and clip with `ST_INTERSECTS`. bbox is only a fast pre-filter gate — it is rectangular and overshoots real boundaries.
+- Never omit `ST_INTERSECTS` for named-area queries. Always use bbox + `ST_INTERSECTS` together: bbox gates the scan cost, `ST_INTERSECTS` ensures geographic correctness.
 - Add `LIMIT` for exploration.
 - Prefer aggregate previews (`COUNT(*)`) before geometry-heavy pulls.
 - Avoid full table scans and large result sets.
@@ -165,8 +165,8 @@ LIMIT 1000;
 ## Recommended Agent Workflow
 
 1. Discover table and column metadata via `INFORMATION_SCHEMA`.
-2. Resolve the target area's bbox once and copy the numeric constants into the final query (hardcoded).
-3. Draft a minimal query with bbox prefilter first, then exact geometry clip (`ST_INTERSECTS`) second.
+2. Resolve the target area's actual geometry from `division_area`. Extract its bbox numeric constants and hardcode them into the query as the scan gate.
+3. Draft the query with bbox prefilter first (scan gate), then `ST_INTERSECTS` against the real boundary geometry second (exact clip). Both are required for named-area queries.
 4. Validate output shape and types with `LIMIT` or `COUNT(*)`.
 5. Iterate in small steps; do not run broad/full extraction queries unless explicitly requested.
 
